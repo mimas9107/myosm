@@ -1,0 +1,22 @@
+# 地理圖資與 OSRM 編譯輸出檔 (檔案過大且可重製，不進版控)
+osrm_data/
+
+# 敏感資訊與 Token
+token.txt
+*.pem
+*.key
+.env
+.env.*
+
+# Node.js (預防未來如果有加入套件)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# 系統與編輯器產生之隱藏檔
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~

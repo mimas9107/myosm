@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="專為台灣道路設計的機車多點外送與配送路徑規劃系統，整合 OSRM 路由引擎與 Trip 演算法，自動計算最速配送順序。">
+    <title>🛵 台灣機車多點配送路徑規劃系統</title>
+    
+    <!-- 引入 Google Fonts (Outfit) & Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- 引入 Leaflet 的 CSS 地圖樣式 (unpkg CDN) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: rgba(15, 23, 42, 0.75);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #38bdf8;       /* 亮藍色 - 起點/主色 */
+            --primary-glow: rgba(56, 189, 248, 0.4);
+            --accent: #f97316;        /* 亮橘色 - 配送點 */
+            --accent-glow: rgba(249, 115, 22, 0.4);
+            --success: #10b981;
+            --danger: #ef4444;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* 地圖容器 */
+        #map {
+            height: 100vh;
+            width: 100%;
+            z-index: 1;
+            background-color: #1a1a1a;
+        }
+
+        /* 側邊控制面板 (玻璃擬態) */
+        #control-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            bottom: 20px;
+            width: 380px;
+            z-index: 1000;
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 面板頭部 */
+        .panel-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .brand-icon {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 8px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .brand-icon svg {
+            color: white;
+            width: 20px;
+            height: 20px;
+        }
+
+        .brand h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, var(--text-main), #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* 面板主要內容區 */
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 滾動條美化 */
+        .panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .panel-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .panel-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 區塊標題 */
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title svg {
+            width: 16px;
+            height: 16px;
+            color: var(--primary);
+        }
+
+        /* 設定控制項 */
+        .settings-group {
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #334155;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* 點位管理列表 */
+        .waypoints-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .waypoint-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .waypoint-item:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(30, 41, 59, 0.7);
+        }
+
+        .waypoint-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .waypoint-badge {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .waypoint-badge.start {
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .waypoint-badge.dest {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .waypoint-coords {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .empty-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 16px;
+            border: 1px dashed var(--panel-border);
+            border-radius: 8px;
+        }
+
+        /* 動作按鈕 */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, var(--primary));
+            color: white;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+            grid-column: span 2;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #1e293b;
+            color: var(--text-main);
+            border: 1px solid var(--panel-border);
+        }
+
+        .btn-secondary:hover {
+            background: #334155;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* 規劃結果面板 */
+        .results-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-label svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-value span {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 2px;
+        }
+
+        /* 配送時間軸 */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding-left: 20px;
+            margin-left: 10px;
+            border-left: 2px dashed rgba(255, 255, 255, 0.1);
+            gap: 16px;
+        }
+
+        .timeline-item {
+            position: relative;
+            font-size: 0.85rem;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -27px;
+            top: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #334155;
+            border: 2px solid var(--bg-dark);
+            z-index: 2;
+            transition: all 0.3s;
+        }
+
+        .timeline-item.start .timeline-dot {
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .timeline-item.dest .timeline-dot {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .timeline-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .timeline-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* 懸浮提示：點擊地圖新增點位說明 */
+        .map-tip {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--panel-border);
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .map-tip svg {
+            color: var(--primary);
+            width: 16px;
+            height: 16px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        /* 載入動畫覆蓋層 */
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 1100;
+            border-radius: 16px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(56, 189, 248, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 自訂 Leaflet Marker 樣式 */
+        .custom-marker-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .marker-pin {
+            width: 28px;
+            height: 28px;
+            border-radius: 50% 50% 50% 0;
+            background: var(--primary);
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -14px 0 0 -14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: -2px 2px 10px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+        }
+
+        .marker-pin::after {
+            content: '';
+            width: 14px;
+            height: 14px;
+            margin: 0;
+            background: var(--bg-dark);
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .marker-pin span {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            z-index: 10;
+        }
+
+        .marker-pin.start {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .marker-pin.dest {
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Leaflet 暗黑版地圖樣式調整 */
+        .leaflet-container {
+            background: #111 !important;
+        }
+
+        /* 隱藏預設 Leaflet 標記 */
+        .leaflet-div-icon {
+            background: transparent;
+            border: none;
+        }
+
+        /* Leaflet Popup 樣式自訂 */
+        .leaflet-popup-content-wrapper {
+            background: var(--bg-dark) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--panel-border);
+            border-radius: 12px !important;
+            font-family: var(--font-family);
+        }
+
+        .leaflet-popup-tip {
+            background: var(--bg-dark) !important;
+            border: 1px solid var(--panel-border);
+        }
+
+        .leaflet-popup-content {
+            margin: 12px 16px !important;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .leaflet-popup-content strong {
+            color: var(--primary);
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 480px) {
+            #control-panel {
+                top: auto;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 50vh;
+                border-radius: 20px 20px 0 0;
+                border-bottom: none;
+            }
+            .map-tip {
+                top: 10px;
+                bottom: auto;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 側邊控制面板 -->
+    <div id="control-panel" role="region" aria-label="配送路徑規劃面板">
+        
+        <!-- 面板頭部 -->
+        <header class="panel-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i data-lucide="navigation"></i>
+                </div>
+                <h1>機車配送路徑規劃</h1>
+            </div>
+            <p class="subtitle">客製台灣機車路權 (OSRM Engine)</p>
+        </header>
+
+        <!-- 主要設定與資訊區 -->
+        <main class="panel-content">
+            
+            <!-- 載入動畫層 -->
+            <div id="loader" class="loader-overlay" aria-hidden="true">
+                <div class="spinner"></div>
+                <p>計算最佳路徑中...</p>
+            </div>
+
+            <!-- 設定區 -->
+            <section aria-labelledby="title-settings">
+                <h2 id="title-settings" class="section-title"><i data-lucide="sliders"></i> 路線設定</h2>
+                <div class="settings-group">
+                    <div class="toggle-container">
+                        <span>🔄 送完配送點返回起點</span>
+                        <label class="switch" aria-label="返回起點開關">
+                            <input type="checkbox" id="toggle-roundtrip">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-container" style="border-top: 1px solid var(--panel-border); padding-top: 12px; margin-top: 4px;">
+                        <span>🎨 地圖風格主題</span>
+                        <select id="select-theme" style="background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--panel-border); border-radius: 6px; padding: 6px 10px; font-family: var(--font-family); font-size: 0.85rem; cursor: pointer; outline: none;">
+                            <option value="dark">科技深色</option>
+                            <option value="voyager">人文亮色 (Voyager)</option>
+                            <option value="osm" selected>標準地圖 (OSM) (預設)</option>
+                        </select>
+                    </div>
+                    <div class="toggle-container" style="border-top: 1px solid var(--panel-border); padding-top: 12px; margin-top: 4px;">
+                        <span>🌈 路線自訂色彩</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="color" id="input-route-color" value="#1d4ed8" style="border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; background: transparent; outline: none;" title="選擇路線顏色">
+                            <span id="label-route-color" style="font-family: monospace; font-size: 0.85rem; color: var(--text-muted);">#1D4ED8</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 配送點管理區 -->
+            <section aria-labelledby="title-waypoints">
+                <h2 id="title-waypoints" class="section-title"><i data-lucide="map-pin"></i> 站點管理 (最少2個)</h2>
+                <div id="waypoints-list" class="waypoints-container">
+                    <!-- 動態渲染站點列表 -->
+                    <div class="empty-text">請在地圖上點擊來新增站點</div>
+                </div>
+            </section>
+
+            <!-- 動作按鈕 -->
+            <section class="action-buttons" aria-label="控制按鈕">
+                <button id="btn-calculate" class="btn btn-primary"><i data-lucide="play"></i> 開始規劃最佳路徑</button>
+                <button id="btn-clear" class="btn btn-secondary"><i data-lucide="trash-2"></i> 清除全部</button>
+                <button id="btn-reset" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> 重設預設</button>
+            </section>
+
+            <!-- 規劃結果 -->
+            <section id="result-section" aria-labelledby="title-results" style="display: none;">
+                <h2 id="title-results" class="section-title"><i data-lucide="check-circle-2"></i> 最佳路徑規劃結果</h2>
+                <div class="results-panel">
+                    <!-- 數據卡片 -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label"><i data-lucide="milestone"></i> 總外送里程</div>
+                            <div class="stat-value" id="val-distance">0.00<span>公里</span></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label"><i data-lucide="clock"></i> 預估總車程</div>
+                            <div class="stat-value" id="val-duration">0<span>分鐘</span></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 最佳順序時間軸 -->
+                    <div class="timeline" id="result-timeline">
+                        <!-- 動態渲染時間軸 -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- 地圖容器 -->
+    <div id="map" aria-label="台灣互動地圖"></div>
+
+    <!-- 懸浮操作提示 -->
+    <div class="map-tip">
+        <i data-lucide="mouse-pointer-click"></i>
+        <span>在地圖上點擊即可新增配送點</span>
+    </div>
+
+    <!-- 引入 Leaflet 的 JavaScript 地圖套件 (unpkg CDN) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // 初始化 Lucide 圖示
+        lucide.createIcons();
+
+        // 1. 初始化地圖，預設中心點在台北車站，使用 CartoDB Dark Matter 深色圖磚
+        const map = L.map('map', {
+            zoomControl: false // 隱藏預設縮放按鈕，讓介面更乾淨
+        }).setView([25.047, 121.517], 14);
+
+        // 新增縮放控制按鈕至右下角
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(map);
+
+        const tileLayers = {
+            dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }),
+            voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }),
+            osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            })
+        };
+
+        // 預設將標準 OSM 亮色圖層加入地圖
+        let currentTileLayer = tileLayers.osm;
+        currentTileLayer.addTo(map);
+
+        // 預設配送點數據 [經度 lon, 緯度 lat]
+        const DEFAULT_POINTS = [
+            [121.517, 25.047], // 台北車站 (起點)
+            [121.544, 25.042], // 配送點 A (忠孝復興)
+            [121.564, 25.033], // 配送點 B (台北101)
+            [121.519, 25.026]  // 配送點 C (古亭)
+        ];
+
+        // 儲存目前所有的點位資訊：{ id, lat, lon, marker, isStart }
+        let waypoints = [];
+        let routeLayers = []; // 儲存地圖上的路徑線段
+        let userRouteColor = '#1d4ed8'; // 預設為亮色 OSM 專用深藍色
+        let isDarkTheme = false; // 當前是否為深色主題 (OSM 預設為亮色)
+        let isColorCustomized = false; // 標記使用者是否手動修改過路徑色彩
+
+        // 2. 自訂 Marker HTML 圖示建立函式
+        function createCustomIcon(index, isStart) {
+            const label = isStart ? '🏪' : index;
+            const className = isStart ? 'marker-pin start' : 'marker-pin dest';
+            return L.divIcon({
+                className: 'custom-marker-icon',
+                html: `<div class="${className}"><span>${label}</span></div>`,
+                iconSize: [30, 42],
+                iconAnchor: [15, 42]
+            });
+        }
+
+        // 3. 渲染右側點位管理列表
+        function renderWaypointsList() {
+            const container = document.getElementById('waypoints-list');
+            if (waypoints.length === 0) {
+                container.innerHTML = '<div class="empty-text">請在地圖上點擊來新增站點</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            waypoints.forEach((wp, index) => {
+                const item = document.createElement('div');
+                item.className = 'waypoint-item';
+                
+                const badgeClass = wp.isStart ? 'start' : 'dest';
+                const label = wp.isStart ? '🏪 起點' : `📦 站點 ${index}`;
+
+                item.innerHTML = `
+                    <div class="waypoint-info">
+                        <div class="waypoint-badge ${badgeClass}">${wp.isStart ? '🏪' : index}</div>
+                        <div>
+                            <div style="font-weight: 500;">${label}</div>
+                            <div class="waypoint-coords">${wp.lat.toFixed(5)}, ${wp.lon.toFixed(5)}</div>
+                        </div>
+                    </div>
+                    ${wp.isStart ? '' : `<button class="btn-delete" onclick="deleteWaypoint('${wp.id}')" title="刪除站點" aria-label="刪除站點"><i data-lucide="x"></i></button>`}
+                `;
+                container.appendChild(item);
+            });
+            lucide.createIcons();
+        }
+
+        // 4. 新增站點至陣列與地圖
+        function addWaypoint(lat, lon, isStart = false) {
+            const id = Math.random().toString(36).substr(2, 9);
+            const index = waypoints.length;
+            
+            // 建立 Leaflet Marker
+            const marker = L.marker([lat, lon], {
+                icon: createCustomIcon(index, isStart),
+                draggable: true // 允許拖曳
+            }).addTo(map);
+
+            // 綁定 Popup
+            const label = isStart ? `<strong>🏪 起點</strong><br>外送餐廳 / 倉庫` : `<strong>📦 配送點 ${index}</strong><br>台灣機車外送目標點`;
+            marker.bindPopup(label);
+
+            // 監聽拖曳結束事件
+            marker.on('dragend', function (event) {
+                const position = marker.getLatLng();
+                updateWaypointPosition(id, position.lat, position.lng);
+            });
+
+            // 加入點位陣列
+            waypoints.push({
+                id,
+                lat,
+                lon,
+                marker,
+                isStart
+            });
+
+            renderWaypointsList();
+            clearRoutes(); // 點位改變後清除舊路徑
+            
+            // 更新每個 Marker 的編號與外觀（因為刪除/新增後 index 會變）
+            updateMarkersUI();
+        }
+
+        // 更新點位位置
+        function updateWaypointPosition(id, lat, lon) {
+            const wp = waypoints.find(w => w.id === id);
+            if (wp) {
+                wp.lat = lat;
+                wp.lon = lon;
+                const index = waypoints.indexOf(wp);
+                const label = wp.isStart ? `<strong>🏪 起點</strong><br>外送餐廳 / 倉庫` : `<strong>📦 配送點 ${index}</strong><br>台灣機車外送目標點`;
+                wp.marker.setPopupContent(label);
+                renderWaypointsList();
+                clearRoutes();
+            }
+        }
+
+        // 更新所有標記的編號（例如刪除中間點時重新對齊）
+        function updateMarkersUI() {
+            waypoints.forEach((wp, index) => {
+                wp.marker.setIcon(createCustomIcon(index, wp.isStart));
+                const label = wp.isStart ? `<strong>🏪 起點</strong><br>外送餐廳 / 倉庫` : `<strong>📦 配送點 ${index}</strong><br>台灣機車外送目標點`;
+                wp.marker.setPopupContent(label);
+            });
+        }
+
+        // 5. 刪除站點
+        window.deleteWaypoint = function(id) {
+            const index = waypoints.findIndex(w => w.id === id);
+            if (index !== -1) {
+                // 從地圖上移除標記
+                map.removeLayer(waypoints[index].marker);
+                // 從陣列中移除
+                waypoints.splice(index, 1);
+                
+                // 更新 UI
+                renderWaypointsList();
+                updateMarkersUI();
+                clearRoutes();
+            }
+        };
+
+        // 清除地圖上的所有路線
+        function clearRoutes() {
+            routeLayers.forEach(layer => map.removeLayer(layer));
+            routeLayers = [];
+            document.getElementById('result-section').style.display = 'none';
+        }
+
+        // 6. 清除全部站點
+        function clearAll() {
+            waypoints.forEach(wp => map.removeLayer(wp.marker));
+            waypoints = [];
+            clearRoutes();
+            renderWaypointsList();
+        }
+
+        // 7. 載入預設站點
+        function loadDefaultWaypoints() {
+            clearAll();
+            DEFAULT_POINTS.forEach((coords, index) => {
+                // OSRM 預設傳 [lon, lat]，但 Leaflet 需帶 [lat, lon]
+                addWaypoint(coords[1], coords[0], index === 0);
+            });
+            
+            // 地圖自動縮放到點位範圍
+            if (waypoints.length > 0) {
+                const group = new L.featureGroup(waypoints.map(w => w.marker));
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // 8. 串接本地 OSRM Trip API 進行 TSP 計算與渲染
+        async function calculateBestTrip() {
+            if (waypoints.length < 2) {
+                alert('請至少加入 1 個起點與 1 個配送點！');
+                return;
+            }
+
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            loader.setAttribute('aria-hidden', 'false');
+
+            // 格式化為 OSRM 要求的 "lon,lat;lon,lat"
+            const coordsString = waypoints.map(wp => `${wp.lon},${wp.lat}`).join(';');
+            
+            // 是否返程設定
+            const isRoundTrip = document.getElementById('toggle-roundtrip').checked;
+
+            // OSRM Trip API URL
+            // source=first: 固定以第一個點（起點）出發
+            // roundtrip=true/false: 決定是否為閉合路徑（返回起點）
+            // destination=any: 在非閉合路徑下，終點由演算法最佳化決定
+            const osrmUrl = `http://localhost:5000/trip/v1/motorcycle/${coordsString}?source=first&destination=any&roundtrip=${isRoundTrip}&geometries=geojson&overview=full`;
+
+            try {
+                const response = await fetch(osrmUrl);
+                const data = await response.json();
+
+                if (data.code !== 'Ok') {
+                    alert('路徑規劃失敗：' + data.code);
+                    loader.style.display = 'none';
+                    loader.setAttribute('aria-hidden', 'true');
+                    return;
+                }
+
+                clearRoutes();
+
+                const trip = data.trips[0];
+                const distanceKm = (trip.distance / 1000).toFixed(2);
+                const durationMin = Math.round(trip.duration / 60);
+
+                // 更新數據顯示
+                document.getElementById('val-distance').innerHTML = `${distanceKm}<span>公里</span>`;
+                document.getElementById('val-duration').innerHTML = `${durationMin}<span>分鐘</span>`;
+
+                // 排序並渲染時間軸配送順序
+                const sortedWaypoints = [...data.waypoints].sort((a, b) => a.trips_index - b.trips_index);
+                const timelineContainer = document.getElementById('result-timeline');
+                timelineContainer.innerHTML = '';
+
+                sortedWaypoints.forEach((wpInfo, index) => {
+                    const item = document.createElement('div');
+                    const isStartNode = wpInfo.waypoint_index === 0;
+                    item.className = `timeline-item ${isStartNode ? 'start' : 'dest'}`;
+
+                    const title = isStartNode ? '🏪 餐廳起點' : `📦 配送點 ${wpInfo.waypoint_index}`;
+                    const origWp = waypoints[wpInfo.waypoint_index];
+                    const coordsText = origWp ? `${origWp.lat.toFixed(5)}, ${origWp.lon.toFixed(5)}` : '';
+
+                    item.innerHTML = `
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-title">${index + 1}. ${title}</span>
+                            <span class="timeline-desc">座標: ${coordsText}</span>
+                        </div>
+                    `;
+                    timelineContainer.appendChild(item);
+                });
+
+                // 若為返程，最後要補一個返回起點的節點
+                if (isRoundTrip) {
+                    const returnItem = document.createElement('div');
+                    returnItem.className = 'timeline-item start';
+                    returnItem.innerHTML = `
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-title">${sortedWaypoints.length + 1}. 🏪 返回起點</span>
+                            <span class="timeline-desc">完成配送，返回起點餐廳</span>
+                        </div>
+                    `;
+                    timelineContainer.appendChild(returnItem);
+                }
+
+                // 顯示結果面板
+                document.getElementById('result-section').style.display = 'flex';
+
+                // 9. 繪製雙層發光科技感導航路線
+                // 我們建立兩層 Layer，隨後透過 updateRouteStyle 套用最佳顏色與粗細
+                const glowLayer = L.geoJSON(trip.geometry).addTo(map);
+                const coreLayer = L.geoJSON(trip.geometry).addTo(map);
+
+                // 將線段存入陣列，便於後續清除與更新
+                routeLayers.push(glowLayer, coreLayer);
+                updateRouteStyle();
+
+                // 自動縮放以看清整條路線
+                const bounds = glowLayer.getBounds();
+                map.fitBounds(bounds.pad(0.15));
+
+            } catch (error) {
+                console.error(error);
+                alert('無法連線到 OSRM 伺服器，請確保 http://localhost:5000 正在運作中。');
+            } finally {
+                loader.style.display = 'none';
+                loader.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        // 9.5 動態更新路線樣式
+        function updateRouteStyle() {
+            if (routeLayers.length < 2) return;
+            const glowLayer = routeLayers[0];
+            const coreLayer = routeLayers[1];
+
+            if (isDarkTheme) {
+                // 深色底圖模式
+                // 底層外發光：使用者顏色 (半透明)；頂層核心線：白色 (霓虹管效果)
+                glowLayer.setStyle({
+                    color: userRouteColor,
+                    weight: 12,
+                    opacity: 0.4
+                });
+                coreLayer.setStyle({
+                    color: '#ffffff',
+                    weight: 4,
+                    opacity: 1
+                });
+            } else {
+                // 亮色底圖模式 (Voyager, OSM)
+                // 底層外圍 Halo 描邊：白色 (提高對比度)；頂層核心線：使用者顏色 (實色)
+                glowLayer.setStyle({
+                    color: '#ffffff',
+                    weight: 10,
+                    opacity: 0.85
+                });
+                coreLayer.setStyle({
+                    color: userRouteColor,
+                    weight: 5,
+                    opacity: 0.95
+                });
+            }
+        }
+
+        // 10. 事件綁定
+        document.getElementById('btn-calculate').addEventListener('click', calculateBestTrip);
+        document.getElementById('btn-clear').addEventListener('click', clearAll);
+        document.getElementById('btn-reset').addEventListener('click', loadDefaultWaypoints);
+        document.getElementById('select-theme').addEventListener('change', function(e) {
+            const selectedTheme = e.target.value;
+            if (tileLayers[selectedTheme]) {
+                map.removeLayer(currentTileLayer);
+                currentTileLayer = tileLayers[selectedTheme];
+                currentTileLayer.addTo(map);
+
+                // 更新主題狀態與預設色彩
+                const prevDark = isDarkTheme;
+                isDarkTheme = (selectedTheme === 'dark');
+
+                if (prevDark !== isDarkTheme) {
+                    const colorInput = document.getElementById('input-route-color');
+                    const colorLabel = document.getElementById('label-route-color');
+
+                    // 若使用者尚未手動客製色彩，我們隨主題切換提供最合適的預設對比色彩
+                    if (!isColorCustomized) {
+                        if (isDarkTheme) {
+                            userRouteColor = '#38bdf8'; // 深色主題預設使用亮霓虹藍
+                        } else {
+                            userRouteColor = '#1d4ed8'; // 亮色主題預設使用皇家深藍
+                        }
+                        colorInput.value = userRouteColor;
+                        colorLabel.innerText = userRouteColor.toUpperCase();
+                    }
+                    updateRouteStyle();
+                }
+            }
+        });
+
+        // 路線顏色選取器事件
+        document.getElementById('input-route-color').addEventListener('input', function(e) {
+            isColorCustomized = true; // 標記使用者已進行手動更改，往後切換主題時不覆蓋此自訂色
+            userRouteColor = e.target.value;
+            document.getElementById('label-route-color').innerText = userRouteColor.toUpperCase();
+            updateRouteStyle();
+        });
+
+        // 地圖點擊新增配送點事件
+        map.on('click', function (event) {
+            const lat = event.latlng.lat;
+            const lon = event.latlng.lng;
+            
+            // 如果目前沒有點，第一個點強制設定為起點
+            const isStart = waypoints.length === 0;
+            addWaypoint(lat, lon, isStart);
+        });
+
+        // 11. 初始化預設點位
+        loadDefaultWaypoints();
+    </script>
+</body>
+</html>
