@@ -2,9 +2,9 @@
 name:             "SPEC.md"
 description:      "台灣機車多點配送路徑規劃系統 — 技術規格文件"
 created_date:     "2026/05/25 18:00:00"
-modified_date:    "2026/05/25 18:18:00"
-project_version:  "1.0.0"
-document_version: "1.0.0"
+modified_date:    "2026/05/26 12:15:00"
+project_version:  "1.1.0"
+document_version: "1.0.1"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ---
 
@@ -91,20 +91,51 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 | 項目 | 規格 |
 |------|------|
 | 執行時期 | Node.js 原生模組（`http`、`fs`、`path`） |
-| 外部依賴 | **無**（零 npm 套件） |
-| 監聽埠 | `3000` |
+| 外部依賴 | `dotenv`（環境變數載入） |
+| 監聽位址 | 可透過 `.env` 設定（預設 `0.0.0.0:3000`） |
 | 支援 MIME 類型 | `text/html`, `text/css`, `application/javascript`, `application/json` |
 
-### 3.4 前端應用程式 (`frontend/index.html`)
+#### 設定檔系統
 
-**使用的外部 CDN 資源：**
+```env
+HOST=0.0.0.0       # 監聽位址
+PORT=3000          # 監聽埠號
+NODE_ENV=development # 執行環境
+```
 
-| 函式庫 | 版本 | 用途 |
-|--------|------|------|
-| Leaflet.js | 1.9.4 | 互動地圖渲染 |
-| CartoDB Dark Matter | — | 深色底圖磚 |
-| CartoDB Voyager | — | 亮色底圖磚 |
-| OpenStreetMap | — | 標準底圖磚 |
+| 設定檔 | 說明 |
+|--------|------|
+| `config.js` | dotenv 載入器，匯出唯讀設定物件 |
+| `.env` | 實際環境變數（已加入 `.gitignore`） |
+| `.env.example` | 範本供開發者複製使用 |
+
+### 3.4 前端應用程式
+
+**目錄結構：**
+
+```
+frontend/
+├── html/index.html    # 頁面結構
+├── css/style.css      # 自訂樣式（Glassmorphism 深色主題）
+├── js/
+│   ├── map.js         # 地圖初始化、圖層、自訂 Marker
+│   ├── ui.js          # DOM 渲染輔助（預設點位、站點列表）
+│   ├── routing.js     # OSRM Trip API 呼叫、路線繪製與樣式
+│   ├── waypoints.js   # 站點 CRUD 管理
+│   └── app.js         # 事件綁定與初始化入口
+└── vendor/leaflet/    # Leaflet 1.9.4 本地資源
+```
+
+**使用的外部資源：**
+
+| 資源 | 用途 |
+|------|------|
+| Leaflet.js 1.9.4（本地 `vendor/`） | 互動地圖渲染 |
+| CartoDB Dark Matter（CDN Tile） | 深色底圖磚 |
+| CartoDB Voyager（CDN Tile） | 亮色底圖磚 |
+| OpenStreetMap（CDN Tile） | 標準底圖磚 |
+| Google Fonts Outfit（CDN） | 字型 |
+| Lucide Icons（CDN） | 圖示 |
 
 **功能模組：**
 

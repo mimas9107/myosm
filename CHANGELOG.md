@@ -2,8 +2,8 @@
 name:             "CHANGELOG.md"
 description:      "專案版本變更紀錄，為版本號的單一事實來源 (Source of Truth)"
 created_date:     "2026/05/25 17:00:00"
-modified_date:    "2026/05/25 18:14:00"
-project_version:  "1.0.0"
+modified_date:    "2026/05/26 12:15:00"
+project_version:  "1.1.0"
 document_version: "1.0.0"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ---
@@ -11,6 +11,25 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 # CHANGELOG
 
 本文件依照 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/) 格式撰寫，版本號遵循 `MAJOR.MINOR.PATCH` 規則。
+
+---
+
+## [1.1.0] — 2026/05/26
+
+### 🏗️ 前端重構與基礎設施強化
+
+### Changed
+- **前端架構重構**：將 `index.html` 內的 `<style>` 與 `<script>` 拆分為獨立 `style.css` 與 `app.js`，並進一步將 JS 模組化為 `map.js`、`ui.js`、`routing.js`、`waypoints.js`、`app.js` 五個功能模組。
+- **目錄結構整理**：按檔案類型分為 `html/`、`css/`、`js/` 三個子目錄，提升專案可維護性。
+- **Leaflet 本地化**：從 CDN 下載 Leaflet 1.9.4（JS + CSS + images）至 `vendor/leaflet/`，減少執行期外部網路依賴。
+- **設定檔系統**：新增 `config.js` + `.env` 設定檔機制，支援 `HOST`、`PORT`、`NODE_ENV` 等變數，開發者可透過 `.env` 覆蓋預設值（預設: `0.0.0.0:3000`）。
+- **`server.js`** 改用 `config.js` 讀取設定，並於啟動 log 顯示當前環境與位址。
+
+### Added
+- `frontend/config.js`：dotenv 設定載入器
+- `frontend/.env`、`frontend/.env.example`：環境設定檔
+- `frontend/package.json`：正式納入 npm 管理（dotenv 相依）
+- `frontend/vendor/leaflet/`：Leaflet 1.9.4 本地資源
 
 ---
 

@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 3000;
+const config = require('./config');
 const PUBLIC_DIR = __dirname; // 服務 frontend 資料夾下的檔案
 
 const MIME_TYPES = {
@@ -31,7 +31,7 @@ const server = http.createServer((req, res) => {
     // 解析檔案路徑
     let safeUrl = req.url.split('?')[0]; // 去除 query string
     if (safeUrl === '/') {
-        safeUrl = '/index.html';
+        safeUrl = '/html/index.html';
     }
 
     const filePath = path.join(PUBLIC_DIR, safeUrl);
@@ -74,9 +74,11 @@ const server = http.createServer((req, res) => {
     });
 });
 
-server.listen(PORT, () => {
+server.listen(config.port, config.host, () => {
+    const displayHost = config.host === '0.0.0.0' ? 'localhost' : config.host;
     console.log(`==================================================`);
     console.log(`🚀 台灣機車路徑規劃前端伺服器已啟動！`);
-    console.log(`   請用瀏覽器開啟：http://localhost:${PORT}`);
+    console.log(`   環境: ${config.nodeEnv}`);
+    console.log(`   位址: http://${displayHost}:${config.port}`);
     console.log(`==================================================`);
 });

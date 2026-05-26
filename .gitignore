@@ -7,6 +7,8 @@ token.txt
 *.key
 .env
 .env.*
+# 但 .env.example 是範本檔，需要進版控
+!.env.example
 
 # Node.js (預防未來如果有加入套件)
 node_modules/

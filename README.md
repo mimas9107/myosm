@@ -2,9 +2,9 @@
 name:             "README.md"
 description:      "專案主要說明文件，涵蓋快速上手、目錄結構與指令參考"
 created_date:     "2026/05/25 17:00:00"
-modified_date:    "2026/05/25 18:15:00"
-project_version:  "1.0.0"
-document_version: "1.0.0"
+modified_date:    "2026/05/26 12:15:00"
+project_version:  "1.1.0"
+document_version: "1.0.1"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ---
 
@@ -22,7 +22,9 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 - **地圖主題切換**：支援科技深色、人文亮色 (Voyager)、標準 OSM 三種底圖。
 - **路線色彩自訂**：內建色彩選取器，隨主題自動套用最佳對比描邊（霓虹發光 / Road Halo）。
 - **返程模式**：可切換「送完即止」或「返回起點」兩種模式。
-- **零外部依賴**：前端伺服器以純 Node.js 原生模組實作，無需 `npm install`。
+- **設定檔驅動**：支援 `.env` 環境變數設定（HOST、PORT、NODE_ENV），開發者可自由覆蓋。
+- **零 CDN 依賴**：Leaflet 地圖引擎已下載至 `vendor/` 目錄，完全本地化執行。
+- **輕量依賴**：僅需 `dotenv` 一個 npm 套件。
 
 ---
 
@@ -31,8 +33,21 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ```
 myosm/
 ├── frontend/
-│   ├── index.html        # 主要前端應用程式（Leaflet.js + Glassmorphism UI）
-│   └── server.js         # 零依賴 Node.js 靜態伺服器（Port 3000）
+│   ├── html/
+│   │   └── index.html        # 前端頁面結構
+│   ├── css/
+│   │   └── style.css         # 自訂樣式（Glassmorphism UI）
+│   ├── js/
+│   │   ├── map.js            # 地圖初始化、圖層、自訂 Marker
+│   │   ├── ui.js             # DOM 渲染輔助函式
+│   │   ├── routing.js        # OSRM Trip API 呼叫與路線繪製
+│   │   ├── waypoints.js      # 站點 CRUD 管理
+│   │   └── app.js            # 事件綁定與初始化入口
+│   ├── vendor/leaflet/       # Leaflet 1.9.4 本地資源（JS + CSS + images）
+│   ├── config.js             # 設定載入器（dotenv）
+│   ├── .env.example          # 環境設定範本
+│   ├── package.json          # npm 相依管理
+│   └── server.js             # Node.js 靜態伺服器（支援 .env 設定）
 ├── osrm_data/
 │   ├── taiwan-latest.osm.pbf       # 台灣 OSM 原始地理圖資
 │   └── taiwan-latest.osrm.*        # OSRM 編譯輸出（27 個檔案）
@@ -52,6 +67,7 @@ myosm/
 
 - Docker（用於運行 OSRM 引擎）
 - Node.js（用於運行前端伺服器，v18+）
+- npm（第一次執行需 `npm install` 安裝 dotenv）
 
 ### 1. 啟動 OSRM 機車路由服務
 
@@ -69,10 +85,10 @@ curl "http://localhost:5000/route/v1/motorcycle/121.517,25.047;121.525,25.048?ov
 # 預期回應：{"code":"Ok",...}
 ```
 
-### 2. 啟動前端服務
+### 2. 安裝相依套件並啟動前端服務
 
 ```bash
-node frontend/server.js
+cd frontend && npm install && node server.js
 # 服務啟動於 http://localhost:3000
 ```
 

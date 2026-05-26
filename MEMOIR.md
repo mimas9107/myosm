@@ -2,9 +2,9 @@
 name:             "MEMOIR.md"
 description:      "台灣機車多點配送路徑規劃系統 — 開發回顧與設計決策紀錄"
 created_date:     "2026/05/25 18:00:00"
-modified_date:    "2026/05/25 18:21:00"
-project_version:  "1.0.0"
-document_version: "1.0.0"
+modified_date:    "2026/05/26 12:15:00"
+project_version:  "1.1.0"
+document_version: "1.0.1"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ---
 
@@ -145,6 +145,7 @@ OSRM Trip API 的 `roundtrip` 參數預設為 `true`，且優先級高於 `desti
 | Bug 修復 | 2026/05/25 傍晚 | roundtrip 參數修正 |
 | 目錄整理 | 2026/05/25 傍晚 | osrm_data/ 建立，根目錄清爽化 |
 | 文件撰寫 | 2026/05/25 傍晚 | README、CHANGELOG、SPEC、MEMOIR 建立 |
+| 前端重構 | 2026/05/26 中午 | 模組化拆分、Leaflet 本地化、設定檔系統 |
 
 ---
 
