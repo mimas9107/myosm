@@ -87,6 +87,7 @@ function clearAll() {
     waypoints = [];
     clearRoutes();
     renderWaypointsList();
+    hideStepsDock();
 }
 
 /** 載入預設的 4 個範例站點，並自動縮放地圖至涵蓋範圍 */

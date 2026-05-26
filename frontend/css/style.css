@@ -61,7 +61,47 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#control-panel.collapsed {
+    transform: translateX(calc(-100% + 44px));
+}
+
+/* 左面板收合切換按鈕 */
+.panel-toggle {
+    position: absolute;
+    right: -14px;
+    top: 80px;
+    width: 28px;
+    height: 48px;
+    border: 1px solid var(--panel-border);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    background: var(--panel-bg);
+    backdrop-filter: blur(16px) saturate(180%);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    transition: all 0.2s ease;
+}
+
+.panel-toggle:hover {
+    color: var(--text-main);
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.panel-toggle svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#control-panel.collapsed .panel-toggle svg {
+    transform: rotate(180deg);
 }
 
 /* 面板頭部 */
@@ -711,7 +751,185 @@ input:checked + .slider:before {
     font-family: monospace;
 }
 
-/* ─── 手機響應式調整 ─── */
+/* ─── 右側可收合步驟 Dock 面板 ─── */
+.steps-dock {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    bottom: 20px;
+    width: 340px;
+    z-index: 1000;
+    display: flex;
+    align-items: stretch;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.steps-dock.collapsed {
+    transform: translateX(calc(100% - 36px));
+}
+
+.steps-dock-content {
+    flex: 1;
+    background: var(--panel-bg);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+.steps-dock-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--panel-border);
+    flex-shrink: 0;
+}
+
+.steps-dock-header h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.steps-dock-header h3 svg {
+    width: 16px;
+    height: 16px;
+    color: var(--primary);
+}
+
+.steps-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+.steps-dock .step-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.steps-dock .step-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.steps-dock .step-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.steps-dock .step-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+}
+
+.steps-dock-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.steps-dock-empty p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* 收合切換按鈕 */
+.steps-toggle {
+    position: absolute;
+    left: -14px;
+    top: 80px;
+    width: 28px;
+    height: 48px;
+    border: 1px solid var(--panel-border);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(16px) saturate(180%);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+    z-index: 1;
+}
+
+.steps-toggle:hover {
+    color: var(--text-main);
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.steps-toggle svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.steps-dock.collapsed .steps-toggle svg {
+    transform: rotate(180deg);
+}
+
+/* 隱藏左側舊的 steps-container */
+#steps-container {
+    display: none !important;
+}
+
+/* ─── 平板手機響應式 ─── */
+@media (max-width: 768px) {
+    .steps-dock {
+        top: auto;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        width: 100%;
+        height: 40vh;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .steps-dock.collapsed {
+        transform: translateY(calc(100% - 36px));
+    }
+
+    .steps-toggle {
+        left: 50%;
+        top: -14px;
+        transform: translateX(-50%);
+        width: 48px;
+        height: 28px;
+        border-radius: 8px 8px 0 0;
+        border: 1px solid var(--panel-border);
+        border-bottom: none;
+    }
+
+    .steps-toggle svg {
+        transform: rotate(90deg);
+    }
+
+    .steps-dock.collapsed .steps-toggle svg {
+        transform: rotate(-90deg);
+    }
+}
+
 @media (max-width: 480px) {
     #control-panel {
         top: auto;

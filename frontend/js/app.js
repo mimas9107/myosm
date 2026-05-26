@@ -10,6 +10,12 @@ document.getElementById('btn-calculate').addEventListener('click', calculateBest
 document.getElementById('btn-clear').addEventListener('click', clearAll);
 document.getElementById('btn-reset').addEventListener('click', loadDefaultWaypoints);
 
+// ─── 右側步驟面板收合按鈕 ───
+document.getElementById('steps-toggle').addEventListener('click', toggleStepsDock);
+
+// ─── 左側控制面板收合按鈕 ───
+document.getElementById('panel-toggle').addEventListener('click', toggleControlPanel);
+
 // ─── 地圖主題切換 ───
 document.getElementById('select-theme').addEventListener('change', function(e) {
     const selectedTheme = e.target.value;

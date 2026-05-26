@@ -53,20 +53,55 @@ function formatDistance(meters) {
     return Math.round(meters) + 'm';
 }
 
+/** 顯示右側步驟 Dock 面板 */
+function showStepsDock() {
+    const dock = document.getElementById('steps-dock');
+    dock.classList.remove('collapsed');
+}
+
+/** 隱藏右側步驟 Dock 面板並清除內容 */
+function hideStepsDock() {
+    const dock = document.getElementById('steps-dock');
+    dock.classList.add('collapsed');
+    const container = document.getElementById('step-list');
+    const emptyEl = document.getElementById('steps-empty');
+    const countEl = document.getElementById('steps-count');
+    if (container) container.innerHTML = '';
+    if (countEl) countEl.textContent = '0 步';
+    if (emptyEl) emptyEl.style.display = 'flex';
+}
+
+/** 切換右側步驟 Dock 面板收合狀態 */
+function toggleStepsDock() {
+    const dock = document.getElementById('steps-dock');
+    dock.classList.toggle('collapsed');
+}
+
+/** 切換左側控制面板收合狀態 */
+function toggleControlPanel() {
+    const panel = document.getElementById('control-panel');
+    panel.classList.toggle('collapsed');
+}
+
 /**
- * 渲染 step-by-step 路段動作卡片清單
+ * 渲染 step-by-step 路段動作卡片清單至右側 Dock
  * @param {Array} steps - 由 parseSteps() 回傳的處理後步驟陣列
  */
 function renderStepList(steps) {
     const container = document.getElementById('step-list');
-    const wrapper = document.getElementById('steps-container');
+    const emptyEl = document.getElementById('steps-empty');
+    const countEl = document.getElementById('steps-count');
 
     if (!steps || steps.length === 0) {
-        wrapper.style.display = 'none';
+        container.innerHTML = '';
+        countEl.textContent = '0 步';
+        emptyEl.style.display = 'flex';
         return;
     }
 
+    emptyEl.style.display = 'none';
     container.innerHTML = '';
+
     steps.forEach((s, i) => {
         const card = document.createElement('div');
         card.className = 'step-card';
@@ -102,7 +137,6 @@ function renderStepList(steps) {
         if (s.type === 'arrive') {
             const waypointIdx = document.createElement('span');
             waypointIdx.className = 'step-waypoint';
-            // 尋找此 arrive 對應的 waypoint（由 parseSteps 傳入）
             waypointIdx.textContent = s.waypointLabel || '';
             actionRow.appendChild(waypointIdx);
         }
@@ -134,7 +168,7 @@ function renderStepList(steps) {
         container.appendChild(card);
     });
 
-    // 重新初始化 Lucide 圖示（新插入的 DOM 可能需要）
     lucide.createIcons();
-    wrapper.style.display = 'block';
+    countEl.textContent = steps.length + ' 步';
+    showStepsDock();
 }

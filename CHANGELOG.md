@@ -2,8 +2,8 @@
 name:             "CHANGELOG.md"
 description:      "專案版本變更紀錄，為版本號的單一事實來源 (Source of Truth)"
 created_date:     "2026/05/25 17:00:00"
-modified_date:    "2026/05/26 16:00:00"
-project_version:  "1.2.0"
+modified_date:    "2026/05/26 18:00:00"
+project_version:  "1.3.0"
 document_version: "1.0.0"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ---
@@ -11,6 +11,21 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 # CHANGELOG
 
 本文件依照 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/) 格式撰寫，版本號遵循 `MAJOR.MINOR.PATCH` 規則。
+
+---
+
+## [1.3.0] — 2026/05/26
+
+### 🪟 雙側欄可收合設計
+
+### Added
+- **左側控制面板收合**：點擊面板右緣按鈕可將左側面板向左滑入收起，僅留切換按鈕，釋放更多地圖畫面。
+- **右側步驟 Dock 面板收合**：步驟清單移至獨立右側浮動面板，支援一鍵收合/展開，不干擾地圖瀏覽。
+- **平板手機自適應**：右側面板在窄螢幕時改為底部滑出，收合按鈕位置自動對應。
+
+### Changed
+- **步驟清單遷移**：從左側面板內移至獨立右側 Dock，規劃結果不再需要滾動到底部才能查看路段動作。
+- **清除全部行為**：按下清除全部時，右側面板內容一併清空，避免殘留舊資料。
 
 ---
 
