@@ -2,8 +2,8 @@
 name:             "CHANGELOG.md"
 description:      "專案版本變更紀錄，為版本號的單一事實來源 (Source of Truth)"
 created_date:     "2026/05/25 17:00:00"
-modified_date:    "2026/05/26 12:15:00"
-project_version:  "1.1.0"
+modified_date:    "2026/05/26 16:00:00"
+project_version:  "1.2.0"
 document_version: "1.0.0"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ---
@@ -11,6 +11,25 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 # CHANGELOG
 
 本文件依照 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/) 格式撰寫，版本號遵循 `MAJOR.MINOR.PATCH` 規則。
+
+---
+
+## [1.2.0] — 2026/05/26
+
+### 🗺️ Step-by-Step 路段動作清單
+
+### Added
+- **`frontend/js/maneuvers.js`**：完整 16 種 OSRM maneuver type 對應表，涵蓋 `turn`、`new name`、`continue`、`depart`、`arrive`、`roundabout`、`fork`、`merge` 等所有類型，含圖示、中文標籤與合併規則。
+  - `parseSteps()`：將 OSRM Trip API 的 raw legs 解析為前端顯示用步驟陣列。
+  - `buildNameChain()`：自動提取道路共同前綴的串接邏輯（e.g. `忠孝東路(一段→二段→三段)`）。
+  - 雙模式導出（瀏覽器全域 + Node.js module.exports），便於測試與重用。
+- **路段動作卡片 UI**：每步一列卡片，顯示圖示、動作文字、道路名稱、距離；`arrive` 步驟以綠色邊框標示站點抵達。支援合併顯示：`new name/straight` 與 `continue/straight` 自動合併為單一卡片。
+- **`tests/test_parseSteps.js`**：14 項單元測試，覆蓋 maneuver mapping、合併規則、斷點分類、空值處理、跨 leg 邊界、站點標籤。
+
+### Changed
+- **`frontend/js/routing.js`**：Trip API URL 加入 `&steps=true`，成功後串接 `parseSteps()` → `renderStepList()`。
+- **`frontend/js/ui.js`**：新增 `renderStepList()` 與 `formatDistance()`。
+- **`frontend/html/index.html`**：新增 `#steps-container` DOM 錨點。
 
 ---
 

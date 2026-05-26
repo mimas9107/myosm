@@ -2,8 +2,8 @@
 name:             "README.md"
 description:      "專案主要說明文件，涵蓋快速上手、目錄結構與指令參考"
 created_date:     "2026/05/25 17:00:00"
-modified_date:    "2026/05/26 12:15:00"
-project_version:  "1.1.0"
+modified_date:    "2026/05/26 16:00:00"
+project_version:  "1.2.0"
 document_version: "1.0.1"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ---
@@ -18,6 +18,7 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 
 - **機車專屬路權**：透過客製 `motorcycle.lua` 封鎖國道、調整各類道路時速，使路線與外送時間更符合台灣實際情況。
 - **TSP 多點最佳化**：使用 OSRM Trip API 自動計算最短時間的配送順序，無需手動排列站點。
+- **Step-by-Step 導航清單**：規劃完成後顯示每個路段的動作（左右轉、直行、迴轉等）、道路名稱與距離，合併連續同名路段。支援 16 種 OSRM maneuver 類型。
 - **互動式地圖**：地圖點擊新增站點、拖曳標記更新位置、一鍵刪除站點。
 - **地圖主題切換**：支援科技深色、人文亮色 (Voyager)、標準 OSM 三種底圖。
 - **路線色彩自訂**：內建色彩選取器，隨主題自動套用最佳對比描邊（霓虹發光 / Road Halo）。
@@ -38,6 +39,7 @@ myosm/
 │   ├── css/
 │   │   └── style.css         # 自訂樣式（Glassmorphism UI）
 │   ├── js/
+│   │   ├── maneuvers.js      # Maneuver type 對應表與步驟解析器
 │   │   ├── map.js            # 地圖初始化、圖層、自訂 Marker
 │   │   ├── ui.js             # DOM 渲染輔助函式
 │   │   ├── routing.js        # OSRM Trip API 呼叫與路線繪製
@@ -52,6 +54,8 @@ myosm/
 │   ├── taiwan-latest.osm.pbf       # 台灣 OSM 原始地理圖資
 │   └── taiwan-latest.osrm.*        # OSRM 編譯輸出（27 個檔案）
 ├── motorcycle.lua         # 機車路權客製 Lua 設定檔
+├── tests/
+│   └── test_parseSteps.js  # 步驟解析單元測試（14 項）
 ├── HIST_GEMINI.md         # Gemini AI 協作開發歷程紀錄
 ├── README.md              # 本文件
 ├── CHANGELOG.md           # 版本變更紀錄
@@ -126,7 +130,15 @@ docker run --rm -t -v "${PWD}:/data" \
 | 端點 | 說明 |
 |------|------|
 | `GET /route/v1/motorcycle/{lon,lat};{lon,lat}` | 兩點間最短路徑 |
-| `GET /trip/v1/motorcycle/{coords}?source=first&roundtrip=false` | TSP 多點最佳化 |
+| `GET /trip/v1/motorcycle/{coords}?source=first&roundtrip=false` | TSP 多點最佳化（含 step-by-step 路段清單） |
+
+---
+
+## 執行測試
+
+```bash
+node tests/test_parseSteps.js
+```
 
 ---
 

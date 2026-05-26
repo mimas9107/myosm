@@ -2,8 +2,8 @@
 name:             "SPEC.md"
 description:      "台灣機車多點配送路徑規劃系統 — 技術規格文件"
 created_date:     "2026/05/25 18:00:00"
-modified_date:    "2026/05/26 12:15:00"
-project_version:  "1.1.0"
+modified_date:    "2026/05/26 16:00:00"
+project_version:  "1.2.0"
 document_version: "1.0.1"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 ---
@@ -69,7 +69,7 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 
 | 端點 | 參數 | 說明 |
 |------|------|------|
-| `GET /trip/v1/motorcycle/{coords}` | `source=first`, `destination=last`, `roundtrip=true\|false`, `geometries=geojson`, `overview=full` | TSP 最佳化多站配送 |
+| `GET /trip/v1/motorcycle/{coords}` | `source=first`, `destination=any`, `roundtrip=true\|false`, `steps=true`, `geometries=geojson`, `overview=full` | TSP 最佳化多站配送（含 step-by-step 路段清單） |
 | `GET /route/v1/motorcycle/{coords}` | `overview=false` | 兩點路線驗證 |
 
 ### 3.2 `motorcycle.lua` — 機車路權設定
@@ -142,11 +142,42 @@ frontend/
 | 模組 | 說明 |
 |------|------|
 | 站點管理 | 新增（點擊地圖）、刪除、拖曳更新座標 |
-| 路線規劃 | 呼叫 OSRM Trip API，解析 GeoJSON 路線並繪製 |
+| 路線規劃 | 呼叫 OSRM Trip API（含 `steps=true`），解析 GeoJSON 路線並繪製 |
+| 步驟解析 | `maneuvers.js`：16 種 maneuver type 對應表、合併規則、`parseSteps()` 解析器 |
+| 步驟顯示 | 每步一列卡片，顯示圖示、動作、道路名稱、距離；`new name/straight` 自動合併 |
 | 主題切換 | Dark / Voyager / OSM 三種底圖，含自動 Halo 對比描邊 |
 | 色彩選取 | 路線顏色自訂（`<input type="color">`） |
 | 返程模式 | `roundtrip=true/false` 動態切換 |
-| 資訊面板 | 顯示總距離（km）、估算時間（分鐘）、TSP 最佳順序 |
+| 資訊面板 | 顯示總距離（km）、估算時間（分鐘）、TSP 最佳順序、路段動作清單 |
+
+### 3.5 `frontend/js/maneuvers.js` — Maneuver 步驟解析器
+
+| 項目 | 規格 |
+|------|------|
+| 職責 | 16 種 OSRM maneuver type 對應表 + 步驟解析 |
+| 輸出模式 | 瀏覽器全域變數 + Node.js `module.exports` |
+| 核心函式 | `parseSteps(legs)`、`isMergeable()`、`isBreakPoint()`、`buildNameChain()` |
+
+#### Maneuver Type 對應表（覆蓋 16 種）
+
+| type | modifier | 圖示 | 動作文字 | 可合併 |
+|------|----------|------|----------|--------|
+| `turn` | left/right/slight*/sharp* | ↰/↳ | 左轉/右轉/微左轉... | ❌ |
+| `new name` | straight | ↑ | 續行 | ✅ |
+| `new name` | left/right | ↰/↳ | 轉入 | ❌ |
+| `continue` | straight | ↑ | 直行 | ✅ |
+| `continue` | uturn | ↩ | 迴轉 | ❌ |
+| `depart` | — | ➤ | 出發 | ❌（但可接受合併） |
+| `arrive` | — | ● | 抵達 | ❌ |
+| `end of road` | left/right | ⊥ | 路底左轉/右轉 | ❌ |
+| `fork` | left/right | Y | 岔路靠左/靠右 | ❌ |
+| `merge` | — | ═ | 匯入 | ❌ |
+| `on ramp` / `off ramp` | — | ╰ / ╭ | 上/下匝道 | ❌ |
+| `roundabout` / `rotary` | — | ◯ / ◎ | 圓環/轉盤第 N 出口 | ❌ |
+
+#### 合併規則
+
+僅 `new name/straight` 與 `continue/straight` 可向前合併，且僅合併入非斷點群組（`depart`、`new name`、`continue` 接受合併）。合併後距離累加、道路名稱以共同前綴串接。
 
 ---
 
@@ -162,13 +193,15 @@ frontend/
 前端組裝座標字串：{lon1,lat1};{lon2,lat2};...
        ↓
 fetch(`http://localhost:5000/trip/v1/motorcycle/{coords}?source=first
-      &destination=last&roundtrip={bool}&geometries=geojson&overview=full`)
+      &destination=any&roundtrip={bool}&steps=true&geometries=geojson&overview=full`)
        ↓
 OSRM 回傳 JSON { code: "Ok", trips: [...], waypoints: [...] }
        ↓
 解析 trips[0].geometry → L.geoJSON 繪製路線
 解析 waypoints[].waypoint_index → 更新最佳配送順序
 顯示 distance / duration 資訊
+       ↓
+parseSteps(trips[0].legs) → 合併 new name/straight → 渲染步驟卡片
 ```
 
 ### 4.2 OSRM 圖資編譯流程
