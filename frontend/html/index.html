@@ -5,23 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="專為台灣道路設計的機車多點外送與配送路徑規劃系統，整合 OSRM 路由引擎與 Trip 演算法，自動計算最速配送順序。">
     <title>🛵 台灣機車多點配送路徑規劃系統</title>
-    
-    <!-- 引入 Google Fonts (Outfit) & Lucide Icons -->
+
+    <!-- 字型與圖示 (CDN) -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- 引入 Leaflet 的 CSS 地圖樣式 (本地) -->
+    <!-- Leaflet 地圖引擎 (本地 vendor) -->
     <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-    
-    <!-- 引入自訂樣式 -->
+    <!-- 自訂主題樣式 -->
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-    <!-- 側邊控制面板 -->
+    <!-- ─── 側邊控制面板 ─── -->
     <div id="control-panel" role="region" aria-label="配送路徑規劃面板">
-        
-        <!-- 面板頭部 -->
+
+        <!-- 面板頭部：品牌識別 -->
         <header class="panel-header">
             <div class="brand">
                 <div class="brand-icon">
@@ -32,19 +31,20 @@
             <p class="subtitle">客製台灣機車路權 (OSRM Engine)</p>
         </header>
 
-        <!-- 主要設定與資訊區 -->
+        <!-- 主要功能區 -->
         <main class="panel-content">
-            
-            <!-- 載入動畫層 -->
+
+            <!-- 載入中遮罩 -->
             <div id="loader" class="loader-overlay" aria-hidden="true">
                 <div class="spinner"></div>
                 <p>計算最佳路徑中...</p>
             </div>
 
-            <!-- 設定區 -->
+            <!-- 路線設定區塊 -->
             <section aria-labelledby="title-settings">
                 <h2 id="title-settings" class="section-title"><i data-lucide="sliders"></i> 路線設定</h2>
                 <div class="settings-group">
+                    <!-- 返程模式切換 -->
                     <div class="toggle-container">
                         <span>🔄 送完配送點返回起點</span>
                         <label class="switch" aria-label="返回起點開關">
@@ -52,6 +52,7 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+                    <!-- 地圖主題選單 -->
                     <div class="toggle-container" style="border-top: 1px solid var(--panel-border); padding-top: 12px; margin-top: 4px;">
                         <span>🎨 地圖風格主題</span>
                         <select id="select-theme" style="background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--panel-border); border-radius: 6px; padding: 6px 10px; font-family: var(--font-family); font-size: 0.85rem; cursor: pointer; outline: none;">
@@ -60,6 +61,7 @@
                             <option value="osm" selected>標準地圖 (OSM) (預設)</option>
                         </select>
                     </div>
+                    <!-- 路線色彩選取器 -->
                     <div class="toggle-container" style="border-top: 1px solid var(--panel-border); padding-top: 12px; margin-top: 4px;">
                         <span>🌈 路線自訂色彩</span>
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -70,27 +72,27 @@
                 </div>
             </section>
 
-            <!-- 配送點管理區 -->
+            <!-- 站點管理列表 -->
             <section aria-labelledby="title-waypoints">
                 <h2 id="title-waypoints" class="section-title"><i data-lucide="map-pin"></i> 站點管理 (最少2個)</h2>
                 <div id="waypoints-list" class="waypoints-container">
-                    <!-- 動態渲染站點列表 -->
+                    <!-- 由 ui.js renderWaypointsList() 動態渲染 -->
                     <div class="empty-text">請在地圖上點擊來新增站點</div>
                 </div>
             </section>
 
-            <!-- 動作按鈕 -->
+            <!-- 主要操作按鈕 -->
             <section class="action-buttons" aria-label="控制按鈕">
                 <button id="btn-calculate" class="btn btn-primary"><i data-lucide="play"></i> 開始規劃最佳路徑</button>
                 <button id="btn-clear" class="btn btn-secondary"><i data-lucide="trash-2"></i> 清除全部</button>
                 <button id="btn-reset" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> 重設預設</button>
             </section>
 
-            <!-- 規劃結果 -->
+            <!-- 規劃結果顯示區 (初始隱藏) -->
             <section id="result-section" aria-labelledby="title-results" style="display: none;">
                 <h2 id="title-results" class="section-title"><i data-lucide="check-circle-2"></i> 最佳路徑規劃結果</h2>
                 <div class="results-panel">
-                    <!-- 數據卡片 -->
+                    <!-- 統計數據卡片 -->
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-label"><i data-lucide="milestone"></i> 總外送里程</div>
@@ -101,10 +103,9 @@
                             <div class="stat-value" id="val-duration">0<span>分鐘</span></div>
                         </div>
                     </div>
-                    
-                    <!-- 最佳順序時間軸 -->
+                    <!-- TSP 最佳順序時間軸 -->
                     <div class="timeline" id="result-timeline">
-                        <!-- 動態渲染時間軸 -->
+                        <!-- 由 routing.js calculateBestTrip() 動態渲染 -->
                     </div>
                 </div>
             </section>
@@ -112,23 +113,23 @@
         </main>
     </div>
 
-    <!-- 地圖容器 -->
+    <!-- 全螢幕 Leaflet 地圖容器 -->
     <div id="map" aria-label="台灣互動地圖"></div>
 
-    <!-- 懸浮操作提示 -->
+    <!-- 地圖操作提示浮層 -->
     <div class="map-tip">
         <i data-lucide="mouse-pointer-click"></i>
         <span>在地圖上點擊即可新增配送點</span>
     </div>
 
-    <!-- 引入 Leaflet 的 JavaScript 地圖套件 (本地) -->
+    <!-- Leaflet 地圖引擎 (本地) -->
     <script src="../vendor/leaflet/leaflet.js"></script>
 
-    <!-- 引入應用程式邏輯模組 (載入順序: 依賴關係由淺至深) -->
-    <script src="../js/map.js"></script>
-    <script src="../js/ui.js"></script>
-    <script src="../js/routing.js"></script>
-    <script src="../js/waypoints.js"></script>
-    <script src="../js/app.js"></script>
+    <!-- 應用程式模組 (依賴由淺至深排列) -->
+    <script src="../js/map.js"></script>        <!-- 地圖初始化、圖層、自訂 Marker -->
+    <script src="../js/ui.js"></script>         <!-- DOM 渲染輔助 -->
+    <script src="../js/routing.js"></script>    <!-- OSRM API 呼叫與路線繪製 -->
+    <script src="../js/waypoints.js"></script>  <!-- 站點 CRUD 管理 -->
+    <script src="../js/app.js"></script>        <!-- 事件綁定與啟動入口 -->
 </body>
 </html>

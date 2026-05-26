@@ -1,3 +1,9 @@
+/* ═══════════════════════════════════════════
+   台灣機車配送路徑規劃 — 自訂主題樣式
+   Glassmorphism 深色控制面板 + Leaflet 覆寫
+   ═══════════════════════════════════════════ */
+
+/* ─── 設計 Token ─── */
 :root {
     --bg-dark: #0f172a;
     --panel-bg: rgba(15, 23, 42, 0.75);
@@ -14,6 +20,7 @@
     --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
+/* ─── 全域重置 ─── */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -29,6 +36,7 @@ body {
     display: flex;
 }
 
+/* ─── 地圖容器：撐滿全螢幕 ─── */
 #map {
     height: 100vh;
     width: 100%;
@@ -36,6 +44,7 @@ body {
     background-color: #1a1a1a;
 }
 
+/* ─── 控制面板：玻璃擬態（Glassmorphism） ─── */
 #control-panel {
     position: absolute;
     top: 20px;
@@ -55,6 +64,7 @@ body {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 面板頭部 */
 .panel-header {
     padding: 24px 20px 16px;
     border-bottom: 1px solid var(--panel-border);
@@ -98,6 +108,7 @@ body {
     line-height: 1.4;
 }
 
+/* 主要內容區：可滾動 */
 .panel-content {
     flex: 1;
     overflow-y: auto;
@@ -107,6 +118,7 @@ body {
     gap: 20px;
 }
 
+/* 自訂滾動條 (Webkit) */
 .panel-content::-webkit-scrollbar {
     width: 6px;
 }
@@ -121,6 +133,7 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* 區塊標題 */
 .section-title {
     font-size: 0.9rem;
     font-weight: 600;
@@ -139,6 +152,7 @@ body {
     color: var(--primary);
 }
 
+/* ─── 設定群組卡片 ─── */
 .settings-group {
     background: var(--card-bg);
     border: 1px solid var(--panel-border);
@@ -156,6 +170,7 @@ body {
     font-size: 0.9rem;
 }
 
+/* 自訂開關 (Toggle Switch) */
 .switch {
     position: relative;
     display: inline-block;
@@ -201,6 +216,7 @@ input:checked + .slider:before {
     transform: translateX(20px);
 }
 
+/* ─── 站點列表 ─── */
 .waypoints-container {
     display: flex;
     flex-direction: column;
@@ -236,6 +252,7 @@ input:checked + .slider:before {
     text-overflow: ellipsis;
 }
 
+/* 站點編號圓標 */
 .waypoint-badge {
     width: 22px;
     height: 22px;
@@ -265,6 +282,7 @@ input:checked + .slider:before {
     font-family: monospace;
 }
 
+/* 刪除按鈕 */
 .btn-delete {
     background: transparent;
     border: none;
@@ -283,6 +301,7 @@ input:checked + .slider:before {
     background: rgba(239, 68, 68, 0.1);
 }
 
+/* 無站點時的佔位提示 */
 .empty-text {
     color: var(--text-muted);
     font-size: 0.85rem;
@@ -292,6 +311,7 @@ input:checked + .slider:before {
     border-radius: 8px;
 }
 
+/* ─── 操作按鈕 ─── */
 .action-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -340,6 +360,7 @@ input:checked + .slider:before {
     border-color: rgba(255, 255, 255, 0.15);
 }
 
+/* ─── 規劃結果面板 ─── */
 .results-panel {
     background: var(--card-bg);
     border: 1px solid var(--panel-border);
@@ -392,6 +413,7 @@ input:checked + .slider:before {
     margin-left: 2px;
 }
 
+/* 配送順序時間軸 */
 .timeline {
     display: flex;
     flex-direction: column;
@@ -446,6 +468,7 @@ input:checked + .slider:before {
     color: var(--text-muted);
 }
 
+/* ─── 地圖底部操作提示 ─── */
 .map-tip {
     position: absolute;
     bottom: 20px;
@@ -478,6 +501,7 @@ input:checked + .slider:before {
     50% { transform: translateY(-4px); }
 }
 
+/* ─── 載入動畫遮罩 ─── */
 .loader-overlay {
     position: absolute;
     top: 0;
@@ -509,6 +533,7 @@ input:checked + .slider:before {
     100% { transform: rotate(360deg); }
 }
 
+/* ─── 自訂 Leaflet 地圖標記 (Marker Pin) ─── */
 .custom-marker-icon {
     display: flex;
     align-items: center;
@@ -532,6 +557,7 @@ input:checked + .slider:before {
     transition: all 0.2s;
 }
 
+/* 中心鏤空圓點 */
 .marker-pin::after {
     content: '';
     width: 14px;
@@ -560,6 +586,7 @@ input:checked + .slider:before {
     box-shadow: 0 0 10px var(--accent-glow);
 }
 
+/* ─── Leaflet 深色主題覆寫 ─── */
 .leaflet-container {
     background: #111 !important;
 }
@@ -569,6 +596,7 @@ input:checked + .slider:before {
     border: none;
 }
 
+/* Popup 樣式：配合深色面板 */
 .leaflet-popup-content-wrapper {
     background: var(--bg-dark) !important;
     color: var(--text-main) !important;
@@ -592,6 +620,7 @@ input:checked + .slider:before {
     color: var(--primary);
 }
 
+/* ─── 手機響應式調整 ─── */
 @media (max-width: 480px) {
     #control-panel {
         top: auto;
