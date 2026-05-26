@@ -1,4 +1,4 @@
-----
+---
 name:             "SPEC.md"
 description:      "台灣機車多點配送路徑規劃系統 — 技術規格文件"
 created_date:     "2026/05/25 18:00:00"
@@ -6,7 +6,7 @@ modified_date:    "2026/05/25 18:18:00"
 project_version:  "1.0.0"
 document_version: "1.0.0"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
-----
+---
 
 # SPEC — 技術規格文件
 

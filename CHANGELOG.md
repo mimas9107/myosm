@@ -1,4 +1,4 @@
-----
+---
 name:             "CHANGELOG.md"
 description:      "專案版本變更紀錄，為版本號的單一事實來源 (Source of Truth)"
 created_date:     "2026/05/25 17:00:00"
@@ -6,7 +6,7 @@ modified_date:    "2026/05/25 18:14:00"
 project_version:  "1.0.0"
 document_version: "1.0.0"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
-----
+---
 
 # CHANGELOG
 

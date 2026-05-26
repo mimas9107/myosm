@@ -1,4 +1,4 @@
-----
+---
 name:             "README.md"
 description:      "專案主要說明文件，涵蓋快速上手、目錄結構與指令參考"
 created_date:     "2026/05/25 17:00:00"
@@ -6,7 +6,7 @@ modified_date:    "2026/05/25 18:15:00"
 project_version:  "1.0.0"
 document_version: "1.0.0"
 agent_sign:       ['human/justin', 'antigravity/gemini-cli']
-----
+---
 
 # 🛵 台灣機車多點配送路徑規劃系統 (MyOSM)
 
