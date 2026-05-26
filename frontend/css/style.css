@@ -620,6 +620,97 @@ input:checked + .slider:before {
     color: var(--primary);
 }
 
+/* ─── Step-by-step 路段動作卡片 ─── */
+.step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.step-card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.step-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.step-card-arrive {
+    border-left: 3px solid var(--success);
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.step-card-depart {
+    border-left: 3px solid var(--primary);
+}
+
+.step-action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-icon {
+    font-size: 1.1rem;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--primary);
+}
+
+.step-card-arrive .step-icon {
+    color: var(--success);
+}
+
+.step-card-depart .step-icon {
+    color: var(--primary);
+}
+
+.step-action {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.step-waypoint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+.step-name {
+    font-size: 0.82rem;
+    color: var(--text-main);
+    padding-left: 32px;
+}
+
+.step-name-chain {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    padding-left: 32px;
+    font-family: monospace;
+}
+
+.step-distance {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
 /* ─── 手機響應式調整 ─── */
 @media (max-width: 480px) {
     #control-panel {

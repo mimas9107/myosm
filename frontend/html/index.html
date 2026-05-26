@@ -107,6 +107,14 @@
                     <div class="timeline" id="result-timeline">
                         <!-- 由 routing.js calculateBestTrip() 動態渲染 -->
                     </div>
+
+                    <!-- Step-by-step 路段動作清單 -->
+                    <div id="steps-container" style="display: none;">
+                        <h3 class="section-title" style="margin-top: 8px;"><i data-lucide="list"></i> 路段動作清單</h3>
+                        <div class="step-list" id="step-list">
+                            <!-- 由 ui.js renderStepList() 動態渲染 -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -128,6 +136,7 @@
     <!-- 應用程式模組 (依賴由淺至深排列) -->
     <script src="../js/map.js"></script>        <!-- 地圖初始化、圖層、自訂 Marker -->
     <script src="../js/ui.js"></script>         <!-- DOM 渲染輔助 -->
+    <script src="../js/maneuvers.js"></script>  <!-- Maneuver type 對應表與步驟解析 -->
     <script src="../js/routing.js"></script>    <!-- OSRM API 呼叫與路線繪製 -->
     <script src="../js/waypoints.js"></script>  <!-- 站點 CRUD 管理 -->
     <script src="../js/app.js"></script>        <!-- 事件綁定與啟動入口 -->

@@ -44,3 +44,97 @@ function renderWaypointsList() {
     // 重新渲染 Lucide 圖示（新插入的 DOM 需要初始化）
     lucide.createIcons();
 }
+
+/**
+ * 格式化距離：< 1000m 顯示「Xm」，≥ 1000m 顯示「X.Xkm」
+ */
+function formatDistance(meters) {
+    if (meters >= 1000) return (meters / 1000).toFixed(1) + 'km';
+    return Math.round(meters) + 'm';
+}
+
+/**
+ * 渲染 step-by-step 路段動作卡片清單
+ * @param {Array} steps - 由 parseSteps() 回傳的處理後步驟陣列
+ */
+function renderStepList(steps) {
+    const container = document.getElementById('step-list');
+    const wrapper = document.getElementById('steps-container');
+
+    if (!steps || steps.length === 0) {
+        wrapper.style.display = 'none';
+        return;
+    }
+
+    container.innerHTML = '';
+    steps.forEach((s, i) => {
+        const card = document.createElement('div');
+        card.className = 'step-card';
+        if (s.type === 'arrive') card.classList.add('step-card-arrive');
+        if (s.type === 'depart') card.classList.add('step-card-depart');
+
+        // 動作列
+        const actionRow = document.createElement('div');
+        actionRow.className = 'step-action-row';
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'step-icon';
+        iconSpan.textContent = s.icon;
+        actionRow.appendChild(iconSpan);
+
+        const actionSpan = document.createElement('span');
+        actionSpan.className = 'step-action';
+        let actionText = s.action;
+
+        if (s.type === 'roundabout' || s.type === 'rotary') {
+            actionText += s.exit ? ` 第${s.exit}出口` : '';
+        }
+        if (s.type === 'fork') {
+            actionText += s.modifier === 'left' ? ' 靠左' : ' 靠右';
+        }
+        if (s.type === 'end of road') {
+            actionText += s.modifier === 'left' ? ' 左轉' : ' 右轉';
+        }
+        actionSpan.textContent = actionText;
+        actionRow.appendChild(actionSpan);
+
+        // 若為抵達，額外顯示站點索引
+        if (s.type === 'arrive') {
+            const waypointIdx = document.createElement('span');
+            waypointIdx.className = 'step-waypoint';
+            // 尋找此 arrive 對應的 waypoint（由 parseSteps 傳入）
+            waypointIdx.textContent = s.waypointLabel || '';
+            actionRow.appendChild(waypointIdx);
+        }
+
+        card.appendChild(actionRow);
+
+        // 道路名稱列
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'step-name';
+        nameDiv.textContent = s.nameDisplay;
+        card.appendChild(nameDiv);
+
+        // 若合併多段，顯示合併明細
+        if (s.nameChain && s.nameChain.length > 1) {
+            const detailDiv = document.createElement('div');
+            detailDiv.className = 'step-name-chain';
+            detailDiv.textContent = '合併: ' + s.nameChain.map(n => displayName(n)).join(' → ');
+            card.appendChild(detailDiv);
+        }
+
+        // 距離（抵達不顯示距離）
+        if (s.type !== 'arrive') {
+            const distSpan = document.createElement('span');
+            distSpan.className = 'step-distance';
+            distSpan.textContent = formatDistance(s.distance);
+            card.appendChild(distSpan);
+        }
+
+        container.appendChild(card);
+    });
+
+    // 重新初始化 Lucide 圖示（新插入的 DOM 可能需要）
+    lucide.createIcons();
+    wrapper.style.display = 'block';
+}

@@ -72,7 +72,7 @@ async function calculateBestTrip() {
 
     // source=first: 固定以第一個點為起點
     // destination=any: 終點由演算法最佳決定
-    const osrmUrl = `http://localhost:5000/trip/v1/motorcycle/${coordsString}?source=first&destination=any&roundtrip=${isRoundTrip}&geometries=geojson&overview=full`;
+    const osrmUrl = `http://localhost:5000/trip/v1/motorcycle/${coordsString}?source=first&destination=any&roundtrip=${isRoundTrip}&steps=true&geometries=geojson&overview=full`;
 
     try {
         const response = await fetch(osrmUrl);
@@ -147,6 +147,10 @@ async function calculateBestTrip() {
         // 自動縮放至路線範圍
         const bounds = glowLayer.getBounds();
         map.fitBounds(bounds.pad(0.15));
+
+        // 解析 step-by-step 路段動作清單
+        const stepGroups = parseSteps(data.trips[0].legs, sortedWaypoints);
+        renderStepList(stepGroups);
 
     } catch (error) {
         console.error(error);
