@@ -2,10 +2,10 @@
 name:             "SPEC.md"
 description:      "台灣機車多點配送路徑規劃系統 — 技術規格文件"
 created_date:     "2026/05/25 18:00:00"
-modified_date:    "2026/05/26 18:00:00"
-project_version:  "1.3.0"
-document_version: "1.0.2"
-agent_sign:       ['human/justin', 'antigravity/gemini-cli']
+modified_date:    "2026/05/27 18:00:00"
+project_version:  "1.4.0"
+document_version: "1.0.3"
+agent_sign:       ['human/justin', 'antigravity/gemini-cli', 'opencode/nemotron']
 ---
 
 # SPEC — 技術規格文件
@@ -149,6 +149,7 @@ frontend/
 | 色彩選取 | 路線顏色自訂（`<input type="color">`） |
 | 返程模式 | `roundtrip=true/false` 動態切換 |
 | 資訊面板 | 顯示總距離（km）、估算時間（分鐘）、TSP 最佳順序、路段動作清單 |
+| 響應式版面 | 斷點 1024px/768px/480px；≤768px 左面板改為上方覆蓋式 drawer、右面板改為底部 sheet |
 
 ### 3.5 `frontend/js/maneuvers.js` — Maneuver 步驟解析器
 

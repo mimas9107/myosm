@@ -2,10 +2,10 @@
 name:             "MEMOIR.md"
 description:      "台灣機車多點配送路徑規劃系統 — 開發回顧與設計決策紀錄"
 created_date:     "2026/05/25 18:00:00"
-modified_date:    "2026/05/26 18:00:00"
-project_version:  "1.3.0"
-document_version: "1.0.2"
-agent_sign:       ['human/justin', 'antigravity/gemini-cli']
+modified_date:    "2026/05/27 18:00:00"
+project_version:  "1.4.0"
+document_version: "1.0.3"
+agent_sign:       ['human/justin', 'antigravity/gemini-cli', 'opencode/nemotron']
 ---
 
 # MEMOIR — 開發回顧文件
@@ -148,6 +148,7 @@ OSRM Trip API 的 `roundtrip` 參數預設為 `true`，且優先級高於 `desti
 | 前端重構 | 2026/05/26 中午 | 模組化拆分、Leaflet 本地化、設定檔系統 |
 | 步驟清單 | 2026/05/26 下午 | 16 種 maneuver type 對應表、合併解析、步驟卡片 UI |
 | 雙側欄收合 | 2026/05/26 傍晚 | 步驟清單移至右側 Dock、左/右側欄皆可收合 |
+| 響應式版面 | 2026/05/27 | 手機自適應：左面板改為上方 drawer、右面板改為 bottom sheet |
 
 ---
 

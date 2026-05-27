@@ -2,10 +2,10 @@
 name:             "README.md"
 description:      "專案主要說明文件，涵蓋快速上手、目錄結構與指令參考"
 created_date:     "2026/05/25 17:00:00"
-modified_date:    "2026/05/26 18:00:00"
-project_version:  "1.3.0"
-document_version: "1.0.2"
-agent_sign:       ['human/justin', 'antigravity/gemini-cli']
+modified_date:    "2026/05/27 18:00:00"
+project_version:  "1.4.0"
+document_version: "1.0.3"
+agent_sign:       ['human/justin', 'antigravity/gemini-cli', 'opencode/nemotron']
 ---
 
 # 🛵 台灣機車多點配送路徑規劃系統 (MyOSM)
@@ -26,6 +26,7 @@ agent_sign:       ['human/justin', 'antigravity/gemini-cli']
 - **設定檔驅動**：支援 `.env` 環境變數設定（HOST、PORT、NODE_ENV），開發者可自由覆蓋。
 - **零 CDN 依賴**：Leaflet 地圖引擎已下載至 `vendor/` 目錄，完全本地化執行。
 - **輕量依賴**：僅需 `dotenv` 一個 npm 套件。
+- **響應式設計**：支援手機/平板窄螢幕自適應（≤768px），左工具欄簡化為圖示、路徑規劃結果以底部可收合面板顯示，不遮蔽地圖檢視。
 
 ---
 

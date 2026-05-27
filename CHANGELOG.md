@@ -2,15 +2,29 @@
 name:             "CHANGELOG.md"
 description:      "專案版本變更紀錄，為版本號的單一事實來源 (Source of Truth)"
 created_date:     "2026/05/25 17:00:00"
-modified_date:    "2026/05/26 18:00:00"
-project_version:  "1.3.0"
+modified_date:    "2026/05/27 18:00:00"
+project_version:  "1.4.0"
 document_version: "1.0.0"
-agent_sign:       ['human/justin', 'antigravity/gemini-cli']
+agent_sign:       ['human/justin', 'antigravity/gemini-cli', 'opencode/nemotron']
 ---
 
 # CHANGELOG
 
 本文件依照 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/) 格式撰寫，版本號遵循 `MAJOR.MINOR.PATCH` 規則。
+
+---
+
+## [1.4.0] — 2026/05/27
+
+### 📱 手機響應式版面
+
+### Added
+- **左面板上方覆蓋式收合**：手機窄螢幕（≤768px）時，左側控制面板改為從頂部覆蓋地圖（`max-height: 75vh`），支援垂直收合（向上收起/向下展開），收合後僅留拖曳把手在螢幕頂部，點擊即可再展開。
+- **右面板底部彈出**：手機窄螢幕時，右側步驟面板改為從底部彈出（40vh 高度），以 Bottom Sheet 形式呈現，規劃完成自動展開，可手動收闔避免遮蔽地圖。
+- **手機版面優化**：隱藏文字標籤、只保留 Lucide 圖示；按鈕改為三欄式圖示排列；調整字型/間距/觸控目標大小（≤480px 進一步縮小）。
+
+### Changed
+- **`frontend/css/style.css`**：新增完整響應式設計（斷點 1024px / 768px / 480px），左面板改為上方 drawer、右面板改為 bottom sheet。
 
 ---
 
